@@ -1,6 +1,6 @@
 # Compilador
 
-Este repositorio contiene el proyecto de construcción de un compilador como parte de la materia de Traductores e Interpretadores. Actualmente, está en desarrollo el análisis léxico de Java, implementado en Python.
+Este repositorio contiene el proyecto de construcción de un compilador como parte de la materia de Traductores e Interpretadores. Actualmente, está en desarrollo el análisis léxico de Java, implementado en Python. 
 
 ## Colaboradores
 
