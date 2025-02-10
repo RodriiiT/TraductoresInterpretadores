@@ -9,6 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from analizador import analizar_lexicamente
 
 
 class Ui_MainWindow(object):
@@ -23,15 +24,15 @@ class Ui_MainWindow(object):
                 self.resultadosButton = QtWidgets.QPushButton(self.centralwidget)
                 self.resultadosButton.setGeometry(QtCore.QRect(170, 430, 75, 24))
                 self.resultadosButton.setStyleSheet("""
-        QPushButton {
-                color: rgb(0, 0, 0);
-                background-color: rgb(217, 217, 217);
-                border-radius: 10px;
-        }
-        QPushButton:hover {
-                background-color: rgb(180, 180, 180); /* Color más oscuro al pasar el mouse */
-        }
-        """)
+    QPushButton {
+        color: rgb(0, 0, 0);
+        background-color: rgb(217, 217, 217);
+        border-radius: 10px;
+    }
+    QPushButton:hover {
+        background-color: rgb(180, 180, 180);
+    }
+""")
                 self.resultadosButton.setObjectName("resultadosButton")
                 self.resultadosButton.clicked.connect(self.mostrar_resultados)
                 
@@ -50,33 +51,48 @@ class Ui_MainWindow(object):
     }
     QPushButton:hover {
         background-color: rgb(180, 180, 180); /* Color más oscuro al pasar el mouse */
-        cursor: pointer; /* Añade esta línea para el cursor de mano */
     }
 """)
                 self.erroresButton_2.setObjectName("erroresButton_2")
                 self.erroresButton_2.clicked.connect(self.mostrar_errores)
                 
-                self.scrollArea = QtWidgets.QScrollArea(self.centralwidget)
-                self.scrollArea.setGeometry(QtCore.QRect(50, 50, 701, 121))
-                self.scrollArea.setStyleSheet("background-color: rgb(217, 217, 217);")
-                self.scrollArea.setWidgetResizable(True)
-                self.scrollArea.setObjectName("scrollArea")
-                self.scrollAreaWidgetContents = QtWidgets.QWidget()
-                self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 699, 119))
-                self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
-                self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+                
+                
+                # Campo de texto para ingresar código Java
+                self.textEdit = QtWidgets.QTextEdit(self.centralwidget)
+                self.textEdit.setGeometry(QtCore.QRect(50, 50, 701, 121))
+                self.textEdit.setStyleSheet("background-color: rgb(217, 217, 217); color: black;")
+                self.textEdit.setObjectName("textEdit")
+
+                self.label = QtWidgets.QLabel("")
+                self.label.setWordWrap(True)  # Permite que el texto haga saltos de línea
+                #self.scrollLayout.addWidget(self.label)
+                #self.scrollArea.setWidget(self.scrollContent)
+                
+                """
                 self.salidaResultados = QtWidgets.QFrame(self.centralwidget)
                 self.salidaResultados.setGeometry(QtCore.QRect(50, 220, 311, 191))
                 self.salidaResultados.setStyleSheet("background-color: rgb(217, 217, 217);")
                 self.salidaResultados.setFrameShape(QtWidgets.QFrame.StyledPanel)
                 self.salidaResultados.setFrameShadow(QtWidgets.QFrame.Raised)
                 self.salidaResultados.setObjectName("salidaResultados")
-                self.salidaErrores = QtWidgets.QFrame(self.centralwidget)
+                """
+                
+                # Campo de texto para mostrar los resultados del análisis
+                self.salidaResultados = QtWidgets.QTextEdit(self.centralwidget)
+                self.salidaResultados.setGeometry(QtCore.QRect(50, 220, 311, 191))
+                self.salidaResultados.setStyleSheet("background-color: rgb(255, 255, 255); color: black;")
+                self.salidaResultados.setObjectName("salidaResultados")
+                self.salidaResultados.setReadOnly(True)  # Para que solo se muestren los resultados
+
+                 # Campo de texto para mostrar los errores
+                self.salidaErrores = QtWidgets.QTextEdit(self.centralwidget)
                 self.salidaErrores.setGeometry(QtCore.QRect(430, 220, 311, 191))
-                self.salidaErrores.setStyleSheet("background-color: rgb(217, 217, 217);")
-                self.salidaErrores.setFrameShape(QtWidgets.QFrame.StyledPanel)
-                self.salidaErrores.setFrameShadow(QtWidgets.QFrame.Raised)
+                self.salidaErrores.setStyleSheet("background-color: rgb(255, 255, 255); color: black;")
                 self.salidaErrores.setObjectName("salidaErrores")
+                self.salidaErrores.setReadOnly(True)  # Solo lectura
+
+                
                 self.textCodigo = QtWidgets.QLabel(self.centralwidget)
                 self.textCodigo.setGeometry(QtCore.QRect(50, 20, 131, 20))
                 self.textCodigo.setStyleSheet("color:rgb(255, 255, 255)")
@@ -135,10 +151,19 @@ class Ui_MainWindow(object):
                 self.menuQue_es_esto.setTitle(_translate("MainWindow", "AnalisisLexico"))
                 
         def mostrar_resultados(self):
-                print("Botón 'Resultados' presionado")
+                codigo_java = self.textEdit.toPlainText()  # Obtener el código ingresado
+                tokens = analizar_lexicamente(codigo_java)  # Llamar al analizador
+                
+                # Convertir los tokens en una cadena de texto para mostrar en la interfaz
+                resultado_texto = "\n".join([f"{token[0]} → {token[1]}" for token in tokens])
+                
+                self.salidaResultados.setPlainText(resultado_texto)  # Mostrar resultados en la GUI
                         
         def mostrar_errores(self):
                 print("Botón 'Errores' presionado")
+                
+        def agregar_texto(self, nuevo_texto):
+                self.textEdit.append(nuevo_texto)  # Agrega texto al final
 
 
 if __name__ == "__main__":
