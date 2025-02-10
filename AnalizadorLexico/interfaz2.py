@@ -9,6 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QFileDialog
 from analizador import analizar_lexicamente, obtener_errores
 
 
@@ -63,6 +64,22 @@ class Ui_MainWindow(object):
                 self.textEdit.setGeometry(QtCore.QRect(50, 50, 701, 121))
                 self.textEdit.setStyleSheet("background-color: rgb(217, 217, 217); color: black;")
                 self.textEdit.setObjectName("textEdit")
+                
+                self.cargarArchivoButton = QtWidgets.QPushButton(self.centralwidget)
+                self.cargarArchivoButton.setGeometry(680, 25, 70, 20)
+                self.cargarArchivoButton.setStyleSheet("""
+                QPushButton {
+                        color: rgb(0, 0, 0);
+                        background-color: rgb(217, 217, 217);
+                        border-radius: 10px;
+                }
+                QPushButton:hover {
+                        background-color: rgb(180, 180, 180);
+                }
+                """)
+                self.cargarArchivoButton.setObjectName("cargarArchivoButton")
+                self.cargarArchivoButton.setText("Archivo Java")
+                self.cargarArchivoButton.clicked.connect(self.cargar_archivo_java)
 
                 self.label = QtWidgets.QLabel("")
                 self.label.setWordWrap(True)  # Permite que el texto haga saltos de línea
@@ -94,7 +111,7 @@ class Ui_MainWindow(object):
 
                 
                 self.textCodigo = QtWidgets.QLabel(self.centralwidget)
-                self.textCodigo.setGeometry(QtCore.QRect(50, 20, 131, 20))
+                self.textCodigo.setGeometry(QtCore.QRect(50, 20, 100, 20))
                 self.textCodigo.setStyleSheet("color:rgb(255, 255, 255)")
                 self.textCodigo.setObjectName("textCodigo")
                 self.textResultados = QtWidgets.QLabel(self.centralwidget)
@@ -177,6 +194,19 @@ class Ui_MainWindow(object):
                         
                 self.salidaErrores.setPlainText(errores_texto)
                 print("Presionando botón error")
+                
+        def cargar_archivo_java(self):
+                opciones = QFileDialog.Options()
+                opciones |= QFileDialog.ReadOnly
+                archivo, _ = QFileDialog.getOpenFileName(None, "Abrir Archivo Java", "", "Archivos Java (*.java);;Todos los archivos (*)", options=opciones)
+                
+                if archivo:
+                        try:
+                                with open(archivo, 'r', encoding='utf-8') as file:
+                                        contenido = file.read()
+                                        self.textEdit.setPlainText(contenido)  # Mostrar en el QTextEdit
+                        except Exception as e:
+                                QtWidgets.QMessageBox.critical(None, "Error", f"No se pudo abrir el archivo:\n{str(e)}")
 
 
 
