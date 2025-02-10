@@ -9,7 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from analizador import analizar_lexicamente
+from analizador import analizar_lexicamente, obtener_errores
 
 
 class Ui_MainWindow(object):
@@ -137,6 +137,7 @@ class Ui_MainWindow(object):
 
                 self.retranslateUi(MainWindow)
                 QtCore.QMetaObject.connectSlotsByName(MainWindow)
+                
         def retranslateUi(self, MainWindow):
                 _translate = QtCore.QCoreApplication.translate
                 MainWindow.setWindowTitle(_translate("MainWindow", "Analizador Léxico"))
@@ -160,10 +161,18 @@ class Ui_MainWindow(object):
                 self.salidaResultados.setPlainText(resultado_texto)  # Mostrar resultados en la GUI
                         
         def mostrar_errores(self):
-                print("Botón 'Errores' presionado")
+                codigo_java = self.textEdit.toPlainText()  # Obtener el código ingresado
+                errores = obtener_errores(codigo_java)  # Llamar a la función que obtiene los errores
                 
-        def agregar_texto(self, nuevo_texto):
-                self.textEdit.append(nuevo_texto)  # Agrega texto al final
+                # Mostrar los errores en la interfaz
+                if errores:
+                        errores_texto = "\n".join(errores)
+                else:
+                        errores_texto = "No se detectaron errores."
+                        
+                self.salidaErrores.setPlainText(errores_texto)
+                print("Presionando botón error")
+
 
 
 if __name__ == "__main__":
