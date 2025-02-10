@@ -156,9 +156,14 @@ class Ui_MainWindow(object):
                 tokens = analizar_lexicamente(codigo_java)  # Llamar al analizador
                 
                 # Convertir los tokens en una cadena de texto para mostrar en la interfaz
-                resultado_texto = "\n".join([f"{token[0]} → {token[1]}" for token in tokens])
+                resultado_texto = "\n".join([f"{token[0]} → {token[1]}, {token[2]}" for token in tokens])
                 
                 self.salidaResultados.setPlainText(resultado_texto)  # Mostrar resultados en la GUI
+                
+                #Imprimir en la consola
+                for palabra, linea, categoria in tokens:
+                        print(f"{palabra} -> Línea {linea}, {categoria}")
+                
                         
         def mostrar_errores(self):
                 codigo_java = self.textEdit.toPlainText()  # Obtener el código ingresado
