@@ -11,9 +11,9 @@ def analizar_lexicamente(codigo):
     comentarios = re.compile(r'//.*|/\*.*?\*/', re.DOTALL)
     
     tokens = []
-    codigo = re.sub(comentarios, '', codigo)  # Eliminar comentarios
+    codigo = re.sub(comentarios, '', codigo)  #Eliminar comentarios
     
-    # Expresión regular para identificar palabras, números y operadores
+    #Expresión regular para identificar palabras, números y operadores
     patron = r'[a-zA-Z_][a-zA-Z_0-9]*|\d+|==|!=|<=|>=|&&|\|\||[+\-*/%<>=!;{}()\[\],]'
 
     lineas = codigo.split("\n")  # Dividir el código en líneas
@@ -89,27 +89,10 @@ def obtener_errores(codigo):
 
     # Verificar bloques vacíos
     # Comprobar si después de un paréntesis o llave hay un bloque vacío (como en "(){ }")
-    if re.search(r'\(\s*\)', codigo):  # Paréntesis vacíos
+    if re.search(r'$$\s*$$', codigo):  # Paréntesis vacíos
         errores.append("Error: Paréntesis vacíos encontrados")
 
     if re.search(r'\{\s*\}', codigo):  # Llaves vacías
         errores.append("Error: Llaves vacías encontradas")
 
     return errores
-
-# Ejemplo de uso
-codigo_ejemplo = """
-public class Prueba {
-    public static void main(String[] args) {
-        int x = 10;
-        if (x >= 5) {
-            x += 2;
-        }
-    }
-}
-"""
-
-tokens = analizar_lexicamente(codigo_ejemplo)
-for palabra, linea, categoria in tokens:
-    print(f"{palabra} -> {linea}, {categoria}")
-print("\n")
