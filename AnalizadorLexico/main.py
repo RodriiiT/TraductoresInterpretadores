@@ -379,6 +379,12 @@ def main(page: ft.Page):
                                             size=20, 
                                             weight=ft.FontWeight.BOLD,
                                             text_align=ft.TextAlign.CENTER),
+                                    ft.Image(
+                                        src="AnalizadorLexico\perro.jpg",
+                                        width=200,  # Ajusta el ancho según sea necesario
+                                        height=200, # Ajusta el alto según sea necesario
+                                        fit=ft.ImageFit.CONTAIN, # Ajusta el fit según sea necesario
+                                    ),
                                 ],
                                 alignment=ft.MainAxisAlignment.CENTER,
                                 horizontal_alignment=ft.CrossAxisAlignment.CENTER
