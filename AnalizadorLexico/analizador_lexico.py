@@ -52,15 +52,24 @@ def obtener_errores(codigo):
     operadores_comparacion = {"==", "!=", "<", ">", "<=", ">="}
     operadores_logicos = {"&&", "||", "!"}
     delimitadores = {";", "{", "}", "(", ")", "[", "]", ","}
-
-    # Procesar el código línea a línea
-    lineas = codigo.split("\n")
+    
+    # Patrón para extraer tokens
     patron = r'[a-zA-Z_][a-zA-Z_0-9]*|\d+|==|!=|<=|>=|&&|\|\||[+\-*/%<>=!;{}()\[\],]'
     
+    # Procesar el código línea a línea
+    lineas = codigo.split("\n")
+    
+    # Palabras de control que normalmente no requieren punto y coma
+    control_keywords = {"if", "for", "while", "else", "switch", "case", "do", "try", "catch", "finally"}
+    
     for num_linea, linea in enumerate(lineas, start=1):
+        # Se ignoran líneas vacías
+        if not linea.strip():
+            continue
+
         tokens_line = re.findall(patron, linea)
         
-        # 1. Palabras clave mal escritas
+        # 1. Palabras clave mal escritas (sugerencia)
         for token in tokens_line:
             if token not in palabras_reservadas and len(token) > 1:
                 for r in palabras_reservadas:
@@ -69,7 +78,6 @@ def obtener_errores(codigo):
         
         # 2. Declaración incompleta (por ejemplo: 'int x 10' sin el operador '=')
         if "int" in tokens_line:
-            # Si después de 'int' no se encuentra un '=' en la misma línea
             int_indices = [i for i, t in enumerate(tokens_line) if t == "int"]
             for idx in int_indices:
                 # Se asume que debe venir un identificador y luego '='
@@ -85,14 +93,23 @@ def obtener_errores(codigo):
                     siguiente = tokens_line[i+1]
                     if not (siguiente.isdigit() or re.match(r'^[a-zA-Z_][a-zA-Z_0-9]*$', siguiente)):
                         errores.append((num_linea, f"Asignación incompleta: '{siguiente}' no es un valor válido"))
+        
+        # 4. Verificación de punto y coma al final de la sentencia:
+        # Solo se revisa si la línea NO es una estructura de control o bloque de código.
+        # Se omiten líneas que terminan en '{' o '}' (definición de bloques).
+        first_token = tokens_line[0] if tokens_line else ''
+        last_token = tokens_line[-1] if tokens_line else ''
+        if first_token not in control_keywords and last_token not in {";", "{", "}"}:
+            # Asumimos que líneas que parecen sentencias deben terminar en ';'
+            errores.append((num_linea, "Falta punto y coma al final de la sentencia"))
     
-    # 4. Comprobación global de llaves y paréntesis
+    # 5. Comprobación global de llaves y paréntesis
     if codigo.count("{") != codigo.count("}"):
-        errores.append((0, "Error: Faltan llaves de cierre o apertura"))
+        errores.append((0, "Error global: Faltan llaves de cierre o apertura"))
     if codigo.count("(") != codigo.count(")"):
-        errores.append((0, "Error: Faltan paréntesis de cierre o apertura"))
+        errores.append((0, "Error global: Faltan paréntesis de cierre o apertura"))
     
-    # 5. Bloques vacíos (se asume que no se desean)
+    # 6. Bloques vacíos (se asume que no se desean)
     if re.search(r'\(\s*\)', codigo):
         errores.append((0, "Error: Paréntesis vacíos encontrados"))
     if re.search(r'\{\s*\}', codigo):

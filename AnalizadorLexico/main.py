@@ -8,11 +8,15 @@ def main(page: ft.Page):
     page.theme_mode = "dark"
     page.bgcolor = "#121212" 
     page.padding = 20
-    
-    #Declarar la variable codigo_input en un ámbito más amplio
+
+    # Configurar únicamente la altura de la ventana (funciona en escritorio)
+    page.window.height = 1000  # Altura deseada
+    page.window_resizable = True  # O False, según prefieras
+
+    # Declarar la variable codigo_input en un ámbito más amplio
     codigo_input = None
-    
-    #Definir la función on_file_picked antes de crear el FilePicker
+
+    # Definir la función on_file_picked antes de crear el FilePicker
     def on_file_picked(e):
         if e.files and len(e.files) > 0:
             selected_file = e.files[0]
@@ -20,21 +24,28 @@ def main(page: ft.Page):
                 # Leer el contenido del archivo
                 with open(selected_file.path, 'r', encoding='utf-8') as file:
                     content = file.read()
-                    #Actualizar el campo de texto con el contenido del archivo
+                    # Actualizar el campo de texto con el contenido del archivo
                     codigo_input.value = content
                     page.update()
             except Exception as ex:
                 print(f"Error al leer el archivo: {ex}")
-    
-    #Crear el FilePicker para seleccionar archivos Java
+
+    # Crear el FilePicker para seleccionar archivos Java
     file_picker = ft.FilePicker(on_result=on_file_picked)
     page.overlay.append(file_picker)
-    
+
     def route_change(route):
         nonlocal codigo_input
-        
+
         page.views.clear()
-        
+
+        # Función para abrir el selector de archivos, disponible en todas las vistas
+        def abrir_selector_archivos(e):
+            file_picker.pick_files(
+                allow_multiple=False,
+                allowed_extensions=["java"]
+            )
+
         # Main menu view
         if page.route == "/":
             page.views.append(
@@ -87,7 +98,7 @@ def main(page: ft.Page):
                 )
             )
 
-        #vista lexoico
+        # Vista Léxico
         if page.route == "/lexico":
             codigo_input = ft.TextField(
                 multiline=True,
@@ -186,12 +197,6 @@ def main(page: ft.Page):
                 resultados_table.controls.clear()
                 errores_table.controls.clear()
                 page.update()
-
-            def abrir_selector_archivos(e):
-                file_picker.pick_files(
-                    allow_multiple=False,
-                    allowed_extensions=["java"]
-                )
 
             page.views.append(
                 ft.View(
@@ -305,13 +310,13 @@ def main(page: ft.Page):
                 text_size=14,
                 color=ft.colors.WHITE,
                 value="""public class Prueba {
-        public static void main(String[] args) {
-            int x = 10;
-            if (x >= 5) {
-                x += 2;
+            public static void main(String[] args) {
+                int x = 10;
+                if (x >= 5) {
+                    x += 2;
+                }
             }
-        }
-    }"""
+        }"""
             )
 
             # Imagen donde se mostrará el árbol generado
@@ -322,12 +327,54 @@ def main(page: ft.Page):
                 # Se genera el árbol sintáctico a partir del código ingresado
                 generar_arbol_sintactico(codigo)
                 # Actualizamos la imagen para reflejar la nueva versión del árbol
-                tree_image.src = "arbol_sintactico.png"  # Se asume que el archivo se guarda con este nombre
+                tree_image.src = "arbol_sintactico.png"
                 page.update()
+
+            # Definir una tabla de errores para la vista sintáctica
+            errores_table = ft.ListView(
+                auto_scroll=True,
+                expand=True,
+                height=250  
+            )
+
+            # Definir la función mostrar_errores para la vista sintáctica
+            def mostrar_errores(e):
+                codigo = codigo_input_sintactico.value
+                errores = obtener_errores(codigo)
+                errores_table.controls.clear()
+                # Encabezado de la tabla de errores
+                errores_table.controls.append(
+                    ft.Row([
+                        ft.Text("Línea", weight=ft.FontWeight.BOLD, width=50),
+                        ft.Text("Error", weight=ft.FontWeight.BOLD, width=300)
+                    ])
+                )
+                if errores:
+                    for linea, mensaje in errores:
+                        linea_str = str(linea) if linea != 0 else "Global"
+                        errores_table.controls.append(
+                            ft.Row([
+                                ft.Text(linea_str, width=50),
+                                ft.Text(mensaje, width=300)
+                            ])
+                        )
+                else:
+                    errores_table.controls.append(
+                        ft.Row([
+                            ft.Text(""),
+                            ft.Text("No se encontraron errores.", width=300)
+                        ])
+                    )
+                page.update()
+
+            def limpiar_resultados(e):
+                errores_table.controls.clear()
+                page.update()
+
 
             page.views.append(
                 ft.View(
-                    "/semantico",
+                    "/sintactico",
                     [
                         ft.AppBar(
                             leading=ft.IconButton(ft.icons.ARROW_BACK, on_click=lambda _: page.go("/")),
@@ -338,26 +385,80 @@ def main(page: ft.Page):
                         ft.Container(
                             content=ft.Column(
                                 [
-                                    ft.Text(
-                                        "Generador de Árbol Sintáctico", 
-                                        size=20, 
-                                        weight=ft.FontWeight.BOLD,
-                                        text_align=ft.TextAlign.CENTER
-                                    ),
+                                    ft.Row([
+                                        ft.Text("Código fuente", size=14, weight=ft.FontWeight.W_500),
+                                        ft.ElevatedButton(
+                                            "Buscar archivo Java",
+                                            icon=ft.icons.UPLOAD_FILE,
+                                            style=ft.ButtonStyle(
+                                                shape=ft.RoundedRectangleBorder(radius=20),
+                                                bgcolor={"": "#1DB954"}
+                                            ),
+                                            on_click=abrir_selector_archivos
+                                        )
+                                    ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                                     codigo_input_sintactico,
-                                    ft.ElevatedButton("Generar Árbol", on_click=generar_arbol),
-                                    tree_image
+                                    # Fila con errores y árbol
+                                    ft.Row(
+                                        [
+                                            ft.Container(
+                                                content=ft.Column([
+                                                    ft.Text("Errores", size=14, weight=ft.FontWeight.W_500),
+                                                    errores_table
+                                                ]),
+                                                expand=True,
+                                                padding=ft.padding.all(10)
+                                            ),
+                                            tree_image
+                                        ],
+                                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+                                    ),
+                                    # Nueva fila con botones debajo de la fila de errores y árbol
+                                    ft.Row(
+                                        [
+                                            ft.ElevatedButton(
+                                                "Errores",
+                                                style=ft.ButtonStyle(
+                                                    shape=ft.RoundedRectangleBorder(radius=20),
+                                                    bgcolor={"": "#1DB954"}
+                                                ),
+                                                on_click=mostrar_errores
+                                            ),
+                                            ft.ElevatedButton(
+                                                "Árbol",
+                                                style=ft.ButtonStyle(
+                                                    shape=ft.RoundedRectangleBorder(radius=20),
+                                                    bgcolor={"": "#1DB954"}
+                                                ),
+                                                on_click=generar_arbol
+                                            ),
+                                            ft.ElevatedButton(
+                                                "Limpiar",
+                                                style=ft.ButtonStyle(
+                                                    shape=ft.RoundedRectangleBorder(radius=20),
+                                                    bgcolor={"": "#FF3B30"}
+                                                ),
+                                                on_click=lambda e: page.update()  # O implementa una función para limpiar
+                                            )
+                                        ],
+                                        alignment=ft.MainAxisAlignment.CENTER,
+                                        spacing=10
+                                    )
                                 ],
                                 alignment=ft.MainAxisAlignment.CENTER,
                                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                                 spacing=20
                             ),
+                            padding=20,
+                            border_radius=10,
                             expand=True,
                             alignment=ft.alignment.center
                         )
                     ]
                 )
             )
+
+
 
         #vista semantico
         elif page.route == "/semantico":
