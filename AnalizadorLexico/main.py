@@ -44,9 +44,9 @@ def main(page: ft.Page):
                         ft.Column(
                             [
                                 ft.Text("Fases de un compilador", 
-                                       size=32, 
-                                       weight=ft.FontWeight.BOLD,
-                                       text_align=ft.TextAlign.CENTER),
+                                        size=32, 
+                                        weight=ft.FontWeight.BOLD,
+                                        text_align=ft.TextAlign.CENTER),
                                 ft.Container(height=40),
                                 ft.ElevatedButton(
                                     "Analizador Léxico",
@@ -88,8 +88,7 @@ def main(page: ft.Page):
             )
 
         #vista lexoico
-        elif page.route == "/lexico":
-            # Crear los controles para la vista del analizador léxico
+        if page.route == "/lexico":
             codigo_input = ft.TextField(
                 multiline=True,
                 min_lines=8,
@@ -108,20 +107,16 @@ def main(page: ft.Page):
             x += 2;
         }
     }
-}"""  # Código de ejemplo
+}"""
             )
-            
-            resultados_output = ft.TextField(
-                multiline=True,
-                min_lines=6,
-                max_lines=6,
-                read_only=True,
-                bgcolor="#282828",
-                border_color="transparent",
-                border_radius=8,
-                text_size=14
+
+            # Tabla de resultados con scroll
+            resultados_table = ft.ListView(
+                auto_scroll=True,
+                expand=True,
+                height=250  
             )
-            
+
             errores_output = ft.TextField(
                 multiline=True,
                 min_lines=6,
@@ -130,52 +125,67 @@ def main(page: ft.Page):
                 bgcolor="#282828",
                 border_color="transparent",
                 border_radius=8,
-                text_size=14
+                text_size=14,
+                expand=True  
             )
-            
-            # Función para analizar el código y mostrar resultados
+
             def analizar_codigo(e):
                 codigo = codigo_input.value
                 tokens = analizar_lexicamente(codigo)
-                
-                # Formatear los resultados
-                resultados_texto = ""
+
+                resultados_table.controls.clear()
+
+                resultados_table.controls.append(
+                    ft.Row([
+                        ft.Text("Línea", weight=ft.FontWeight.BOLD, width=50),
+                        ft.Text("Token", weight=ft.FontWeight.BOLD, width=120),
+                        ft.Text("Categoría", weight=ft.FontWeight.BOLD, width=150)
+                    ])
+                )
+
                 for palabra, linea, categoria in tokens:
-                    resultados_texto += f"{palabra} -> {linea}, {categoria}\n"
-                
-                resultados_output.value = resultados_texto
+                    resultados_table.controls.append(
+                        ft.Row([
+                            ft.Text(str(linea), width=50),
+                            ft.Text(palabra, width=120),
+                            ft.Text(categoria, width=150)
+                        ])
+                    )
+
                 page.update()
-            
-            # Función para mostrar errores
+
             def mostrar_errores(e):
                 codigo = codigo_input.value
                 errores = obtener_errores(codigo)
-                
-                # Formatear los errores
+
                 errores_texto = ""
                 if errores:
                     for error in errores:
                         errores_texto += f"{error}\n"
                 else:
                     errores_texto = "No se encontraron errores."
-                
+
                 errores_output.value = errores_texto
                 page.update()
-            
-            #Función para abrir el selector de archivos
+
+            def limpiar_resultados(e):
+                resultados_table.controls.clear()
+                errores_output.value = ""
+                page.update()
+
             def abrir_selector_archivos(e):
                 file_picker.pick_files(
                     allow_multiple=False,
                     allowed_extensions=["java"]
                 )
-            
+
             page.views.append(
                 ft.View(
                     "/lexico",
                     [
                         ft.AppBar(
                             leading=ft.IconButton(ft.icons.ARROW_BACK, 
-                                                on_click=lambda _: page.go("/")),
+                                                  on_click=lambda _: page.go("/")),
                             title=ft.Text("Analizador Léxico"),
                             center_title=True,
                             bgcolor="#121212",
@@ -186,9 +196,9 @@ def main(page: ft.Page):
                                     ft.Container(
                                         content=ft.Column([
                                             ft.Row([
-                                                ft.Text("Código fuente", 
-                                                       size=14, 
-                                                       weight=ft.FontWeight.W_500),
+                                                ft.Text("Código fuente",
+                                                        size=14, 
+                                                        weight=ft.FontWeight.W_500),
                                                 ft.ElevatedButton(
                                                     "Buscar archivo Java",
                                                     icon=ft.icons.UPLOAD_FILE,
@@ -203,44 +213,34 @@ def main(page: ft.Page):
                                         ]),
                                         padding=ft.padding.only(bottom=10)
                                     ),
-                                    
-                                    #Resultados y errores
+
+                                    # Contenedor con tabla de resultados y errores alineados horizontalmente
                                     ft.Container(
                                         content=ft.Row(
                                             [
                                                 ft.Container(
-                                                    content=ft.Column(
-                                                        [
-                                                            ft.Text("Resultados", 
-                                                                   size=14, 
-                                                                   weight=ft.FontWeight.W_500),
-                                                            resultados_output
-                                                        ],
-                                                        spacing=5
-                                                    ),
+                                                    content=ft.Column([
+                                                        ft.Text("Resultados", size=14, weight=ft.FontWeight.W_500),
+                                                        resultados_table
+                                                    ]),
                                                     expand=True,
-                                                    padding=5
+                                                    padding=ft.padding.all(10)
                                                 ),
-                                                #Errores
                                                 ft.Container(
-                                                    content=ft.Column(
-                                                        [
-                                                            ft.Text("Errores", 
-                                                                   size=14, 
-                                                                   weight=ft.FontWeight.W_500),
-                                                            errores_output
-                                                        ],
-                                                        spacing=5
-                                                    ),
+                                                    content=ft.Column([
+                                                        ft.Text("Errores", size=14, weight=ft.FontWeight.W_500),
+                                                        errores_output
+                                                    ]),
                                                     expand=True,
-                                                    padding=5
-                                                )
+                                                    padding=ft.padding.all(10)
+                                                ),
                                             ],
-                                            spacing=0
+                                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                                         ),
-                                        padding=ft.padding.only(bottom=10)
+                                        height=300  
                                     ),
-                                    #Btones
+
+                                    # Botones de acciones
                                     ft.Row(
                                         [
                                             ft.ElevatedButton(
@@ -258,23 +258,21 @@ def main(page: ft.Page):
                                                     bgcolor={"": "#1DB954"}
                                                 ),
                                                 on_click=mostrar_errores
+                                            ),
+                                            ft.ElevatedButton(
+                                                "Limpiar",
+                                                style=ft.ButtonStyle(
+                                                    shape=ft.RoundedRectangleBorder(radius=20),
+                                                    bgcolor={"": "#FF3B30"}  
+                                                ),
+                                                on_click=limpiar_resultados
                                             )
                                         ],
                                         alignment=ft.MainAxisAlignment.CENTER,
                                         spacing=10
-                                    ),
-                                    ft.Container(
-                                        content=ft.Text(
-                                            "Rodrigo Torres • Jesús Araujo",
-                                            size=12,
-                                            color=ft.colors.GREY_400,
-                                            text_align=ft.TextAlign.RIGHT
-                                        ),
-                                        padding=ft.padding.only(top=10),
-                                        alignment=ft.alignment.center_right
                                     )
                                 ],
-                                spacing=0
+                                spacing=10
                             ),
                             padding=20,
                             border_radius=10
