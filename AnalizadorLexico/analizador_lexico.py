@@ -46,53 +46,56 @@ def analizar_lexicamente(codigo):
 def obtener_errores(codigo):
     errores = []
     palabras_reservadas = {"class", "public", "static", "void", "int", "String", "if", "else", "for", "while", "return"}
+    # Otras colecciones para validación (se pueden usar en el futuro)
     operadores_aritmeticos = {"+", "-", "*", "/", "%"}
     operadores_asignacion = {"=", "+=", "-=", "*=", "/=", "%="}
     operadores_comparacion = {"==", "!=", "<", ">", "<=", ">="}
     operadores_logicos = {"&&", "||", "!"}
     delimitadores = {";", "{", "}", "(", ")", "[", "]", ","}
 
+    # Procesar el código línea a línea
+    lineas = codigo.split("\n")
     patron = r'[a-zA-Z_][a-zA-Z_0-9]*|\d+|==|!=|<=|>=|&&|\|\||[+\-*/%<>=!;{}()\[\],]'
-    coincidencias = re.findall(patron, codigo)
-
-    # Detectar palabras clave mal escritas
-    for palabra in coincidencias:
-        if palabra not in palabras_reservadas and len(palabra) > 1:
-            for res in palabras_reservadas:
-                if res.startswith(palabra):  # Si la palabra está incompleta, como 'in' -> 'int'
-                    errores.append(f"Error: Palabra clave mal escrita '{palabra}' (posiblemente debería ser '{res}')")
-
-    # Detectar errores de declaración incompleta como 'int x 10'
-    for palabra in coincidencias:
-        if palabra == "int":
-            if len(coincidencias) > 1 and "int" in coincidencias and "=" not in coincidencias:
-                errores.append("Error: Falta el operador de asignación '=' en la declaración")
-
-    # Verificar errores de operadores y sintaxis
-    for palabra in coincidencias:
-        if palabra == "=":
-            # Verificar si hay una asignación sin un valor a la derecha
-            index = coincidencias.index("=")
-            if index + 1 >= len(coincidencias) or not coincidencias[index + 1].isdigit():
-                errores.append("Error: Asignación incompleta, falta valor a la derecha del '='")
-
-    # Verificar si faltan paréntesis o llaves
-    abrir_llave = codigo.count("{")
-    cerrar_llave = codigo.count("}")
-    abrir_parentesis = codigo.count("(")
-    cerrar_parentesis = codigo.count(")")
-
-    if abrir_llave != cerrar_llave:
-        errores.append("Error: Faltan llaves de cierre o apertura")
-    if abrir_parentesis != cerrar_parentesis:
-        errores.append("Error: Faltan paréntesis de cierre o apertura")
-
-    # Verificar bloques vacíos
-    # Comprobar si después de un paréntesis o llave hay un bloque vacío (como en "(){ }")
-    if re.search(r'$$\s*$$', codigo):  # Paréntesis vacíos
-        errores.append("Error: Paréntesis vacíos encontrados")
-
-    if re.search(r'\{\s*\}', codigo):  # Llaves vacías
-        errores.append("Error: Llaves vacías encontradas")
-
+    
+    for num_linea, linea in enumerate(lineas, start=1):
+        tokens_line = re.findall(patron, linea)
+        
+        # 1. Palabras clave mal escritas
+        for token in tokens_line:
+            if token not in palabras_reservadas and len(token) > 1:
+                for r in palabras_reservadas:
+                    if r.startswith(token) and token != r:
+                        errores.append((num_linea, f"Palabra clave mal escrita '{token}' (posiblemente debería ser '{r}')"))
+        
+        # 2. Declaración incompleta (por ejemplo: 'int x 10' sin el operador '=')
+        if "int" in tokens_line:
+            # Si después de 'int' no se encuentra un '=' en la misma línea
+            int_indices = [i for i, t in enumerate(tokens_line) if t == "int"]
+            for idx in int_indices:
+                # Se asume que debe venir un identificador y luego '='
+                if idx + 2 < len(tokens_line) and tokens_line[idx+2] != "=":
+                    errores.append((num_linea, "Falta el operador de asignación '=' en la declaración"))
+        
+        # 3. Asignación incompleta: si aparece '=' y el siguiente token no es un número ni un identificador válido
+        for i, token in enumerate(tokens_line):
+            if token == "=":
+                if i+1 >= len(tokens_line):
+                    errores.append((num_linea, "Asignación incompleta: falta valor a la derecha del '='"))
+                else:
+                    siguiente = tokens_line[i+1]
+                    if not (siguiente.isdigit() or re.match(r'^[a-zA-Z_][a-zA-Z_0-9]*$', siguiente)):
+                        errores.append((num_linea, f"Asignación incompleta: '{siguiente}' no es un valor válido"))
+    
+    # 4. Comprobación global de llaves y paréntesis
+    if codigo.count("{") != codigo.count("}"):
+        errores.append((0, "Error: Faltan llaves de cierre o apertura"))
+    if codigo.count("(") != codigo.count(")"):
+        errores.append((0, "Error: Faltan paréntesis de cierre o apertura"))
+    
+    # 5. Bloques vacíos (se asume que no se desean)
+    if re.search(r'\(\s*\)', codigo):
+        errores.append((0, "Error: Paréntesis vacíos encontrados"))
+    if re.search(r'\{\s*\}', codigo):
+        errores.append((0, "Error: Llaves vacías encontradas"))
+    
     return errores

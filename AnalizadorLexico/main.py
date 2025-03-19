@@ -101,13 +101,13 @@ def main(page: ft.Page):
                 text_size=14,
                 color=ft.colors.WHITE,
                 value="""public class Prueba {
-    public static void main(String[] args) {
-        int x = 10;
-        if (x >= 5) {
-            x += 2;
-        }
-    }
-}"""
+            public static void main(String[] args) {
+                int x = 10;
+                if (x >= 5) {
+                    x += 2;
+                }
+            }
+        }"""
             )
 
             # Tabla de resultados con scroll
@@ -117,16 +117,11 @@ def main(page: ft.Page):
                 height=250  
             )
 
-            errores_output = ft.TextField(
-                multiline=True,
-                min_lines=6,
-                max_lines=6,
-                read_only=True,
-                bgcolor="#282828",
-                border_color="transparent",
-                border_radius=8,
-                text_size=14,
-                expand=True  
+            # Tabla de errores con scroll (donde se mostrará la línea y el error)
+            errores_table = ft.ListView(
+                auto_scroll=True,
+                expand=True,
+                height=250  
             )
 
             def analizar_codigo(e):
@@ -135,6 +130,7 @@ def main(page: ft.Page):
 
                 resultados_table.controls.clear()
 
+                # Encabezado de la tabla de tokens
                 resultados_table.controls.append(
                     ft.Row([
                         ft.Text("Línea", weight=ft.FontWeight.BOLD, width=50),
@@ -158,19 +154,37 @@ def main(page: ft.Page):
                 codigo = codigo_input.value
                 errores = obtener_errores(codigo)
 
-                errores_texto = ""
-                if errores:
-                    for error in errores:
-                        errores_texto += f"{error}\n"
-                else:
-                    errores_texto = "No se encontraron errores."
+                errores_table.controls.clear()
 
-                errores_output.value = errores_texto
+                # Encabezado de la tabla de errores
+                errores_table.controls.append(
+                    ft.Row([
+                        ft.Text("Línea", weight=ft.FontWeight.BOLD, width=50),
+                        ft.Text("Error", weight=ft.FontWeight.BOLD, width=300)
+                    ])
+                )
+
+                if errores:
+                    for linea, mensaje in errores:
+                        linea_str = str(linea) if linea != 0 else "Global"
+                        errores_table.controls.append(
+                            ft.Row([
+                                ft.Text(linea_str, width=50),
+                                ft.Text(mensaje, width=300)
+                            ])
+                        )
+                else:
+                    errores_table.controls.append(
+                        ft.Row([
+                            ft.Text(""),
+                            ft.Text("No se encontraron errores.", width=300)
+                        ])
+                    )
                 page.update()
 
             def limpiar_resultados(e):
                 resultados_table.controls.clear()
-                errores_output.value = ""
+                errores_table.controls.clear()
                 page.update()
 
             def abrir_selector_archivos(e):
@@ -184,8 +198,7 @@ def main(page: ft.Page):
                     "/lexico",
                     [
                         ft.AppBar(
-                            leading=ft.IconButton(ft.icons.ARROW_BACK, 
-                                                  on_click=lambda _: page.go("/")),
+                            leading=ft.IconButton(ft.icons.ARROW_BACK, on_click=lambda _: page.go("/")),
                             title=ft.Text("Analizador Léxico"),
                             center_title=True,
                             bgcolor="#121212",
@@ -196,9 +209,7 @@ def main(page: ft.Page):
                                     ft.Container(
                                         content=ft.Column([
                                             ft.Row([
-                                                ft.Text("Código fuente",
-                                                        size=14, 
-                                                        weight=ft.FontWeight.W_500),
+                                                ft.Text("Código fuente", size=14, weight=ft.FontWeight.W_500),
                                                 ft.ElevatedButton(
                                                     "Buscar archivo Java",
                                                     icon=ft.icons.UPLOAD_FILE,
@@ -213,8 +224,7 @@ def main(page: ft.Page):
                                         ]),
                                         padding=ft.padding.only(bottom=10)
                                     ),
-
-                                    # Contenedor con tabla de resultados y errores alineados horizontalmente
+                                    # Contenedor con tablas de resultados y errores alineados horizontalmente
                                     ft.Container(
                                         content=ft.Row(
                                             [
@@ -229,7 +239,7 @@ def main(page: ft.Page):
                                                 ft.Container(
                                                     content=ft.Column([
                                                         ft.Text("Errores", size=14, weight=ft.FontWeight.W_500),
-                                                        errores_output
+                                                        errores_table
                                                     ]),
                                                     expand=True,
                                                     padding=ft.padding.all(10)
@@ -239,7 +249,6 @@ def main(page: ft.Page):
                                         ),
                                         height=300  
                                     ),
-
                                     # Botones de acciones
                                     ft.Row(
                                         [
@@ -263,7 +272,7 @@ def main(page: ft.Page):
                                                 "Limpiar",
                                                 style=ft.ButtonStyle(
                                                     shape=ft.RoundedRectangleBorder(radius=20),
-                                                    bgcolor={"": "#FF3B30"}  
+                                                    bgcolor={"": "#FF3B30"}
                                                 ),
                                                 on_click=limpiar_resultados
                                             )
