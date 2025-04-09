@@ -8,11 +8,12 @@ def main(page: ft.Page):
     page.theme_mode = "dark"
     page.bgcolor = "#121212" 
     page.padding = 20
+    page.scroll = "auto"  # Habilitar scroll automático
 
-    # Configurar únicamente la altura de la ventana (funciona en escritorio)
-    page.window.height = 1000  # Altura deseada
-    page.window_resizable = True  # O False, según prefieras
-
+    # Configurar la altura de la ventana
+    page.window.height = 900  # Reducir un poco la altura
+    page.window_resizable = True
+    
     # Declarar la variable codigo_input en un ámbito más amplio
     codigo_input = None
 
@@ -102,8 +103,8 @@ def main(page: ft.Page):
         if page.route == "/lexico":
             codigo_input = ft.TextField(
                 multiline=True,
-                min_lines=8,
-                max_lines=8,
+                min_lines=6,  # Reducir el número de líneas
+                max_lines=6,  # Reducir el número de líneas
                 hint_text="Introduzca su código aquí...",
                 hint_style=ft.TextStyle(color=ft.colors.GREY_400),
                 border_radius=8,
@@ -112,27 +113,27 @@ def main(page: ft.Page):
                 text_size=14,
                 color=ft.colors.WHITE,
                 value="""public class Prueba {
-            public static void main(String[] args) {
-                int x = 10;
-                if (x >= 5) {
-                    x += 2;
-                }
-            }
-        }"""
+    public static void main(String[] args) {
+        int x = 10;
+        if (x >= 5) {
+            x += 2;
+        }
+    }
+}"""
             )
 
             # Tabla de resultados con scroll
             resultados_table = ft.ListView(
                 auto_scroll=True,
                 expand=True,
-                height=250  
+                height=200  # Reducir altura
             )
 
             # Tabla de errores con scroll (donde se mostrará la línea y el error)
             errores_table = ft.ListView(
                 auto_scroll=True,
                 expand=True,
-                height=250  
+                height=200  # Reducir altura
             )
 
             def analizar_codigo(e):
@@ -198,6 +199,38 @@ def main(page: ft.Page):
                 errores_table.controls.clear()
                 page.update()
 
+            # Botones de acción - Ahora están en la parte superior
+            botones_accion = ft.Row(
+                [
+                    ft.ElevatedButton(
+                        "Resultados",
+                        style=ft.ButtonStyle(
+                            shape=ft.RoundedRectangleBorder(radius=20),
+                            bgcolor={"": "#1DB954"}
+                        ),
+                        on_click=analizar_codigo
+                    ),
+                    ft.ElevatedButton(
+                        "Errores",
+                        style=ft.ButtonStyle(
+                            shape=ft.RoundedRectangleBorder(radius=20),
+                            bgcolor={"": "#1DB954"}
+                        ),
+                        on_click=mostrar_errores
+                    ),
+                    ft.ElevatedButton(
+                        "Limpiar",
+                        style=ft.ButtonStyle(
+                            shape=ft.RoundedRectangleBorder(radius=20),
+                            bgcolor={"": "#FF3B30"}
+                        ),
+                        on_click=limpiar_resultados
+                    )
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                spacing=10
+            )
+
             page.views.append(
                 ft.View(
                     "/lexico",
@@ -229,6 +262,10 @@ def main(page: ft.Page):
                                         ]),
                                         padding=ft.padding.only(bottom=10)
                                     ),
+                                    
+                                    # Botones ahora están aquí, antes de las tablas
+                                    botones_accion,
+                                    
                                     # Contenedor con tablas de resultados y errores alineados horizontalmente
                                     ft.Container(
                                         content=ft.Row(
@@ -252,46 +289,16 @@ def main(page: ft.Page):
                                             ],
                                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                                         ),
-                                        height=300  
+                                        height=250  # Reducir altura
                                     ),
-                                    # Botones de acciones
-                                    ft.Row(
-                                        [
-                                            ft.ElevatedButton(
-                                                "Resultados",
-                                                style=ft.ButtonStyle(
-                                                    shape=ft.RoundedRectangleBorder(radius=20),
-                                                    bgcolor={"": "#1DB954"}
-                                                ),
-                                                on_click=analizar_codigo
-                                            ),
-                                            ft.ElevatedButton(
-                                                "Errores",
-                                                style=ft.ButtonStyle(
-                                                    shape=ft.RoundedRectangleBorder(radius=20),
-                                                    bgcolor={"": "#1DB954"}
-                                                ),
-                                                on_click=mostrar_errores
-                                            ),
-                                            ft.ElevatedButton(
-                                                "Limpiar",
-                                                style=ft.ButtonStyle(
-                                                    shape=ft.RoundedRectangleBorder(radius=20),
-                                                    bgcolor={"": "#FF3B30"}
-                                                ),
-                                                on_click=limpiar_resultados
-                                            )
-                                        ],
-                                        alignment=ft.MainAxisAlignment.CENTER,
-                                        spacing=10
-                                    )
                                 ],
                                 spacing=10
                             ),
                             padding=20,
                             border_radius=10
                         )
-                    ]
+                    ],
+                    scroll=ft.ScrollMode.AUTO  # Habilitar scroll en la vista
                 )
             )
 
@@ -300,8 +307,8 @@ def main(page: ft.Page):
             # Creamos un input específico para el código en la vista sintáctica
             codigo_input_sintactico = ft.TextField(
                 multiline=True,
-                min_lines=8,
-                max_lines=8,
+                min_lines=6,  # Reducir el número de líneas
+                max_lines=6,  # Reducir el número de líneas
                 hint_text="Ingrese el código Java para el árbol sintáctico...",
                 hint_style=ft.TextStyle(color=ft.colors.GREY_400),
                 border_radius=8,
@@ -310,17 +317,17 @@ def main(page: ft.Page):
                 text_size=14,
                 color=ft.colors.WHITE,
                 value="""public class Prueba {
-            public static void main(String[] args) {
-                int x = 10;
-                if (x >= 5) {
-                    x += 2;
-                }
-            }
-        }"""
+    public static void main(String[] args) {
+        int x = 10;
+        if (x >= 5) {
+            x += 2;
+        }
+    }
+}"""
             )
 
             # Imagen donde se mostrará el árbol generado
-            tree_image = ft.Image(src="arbol_sintactico.png", width=400, height=300)
+            tree_image = ft.Image(src="arbol_sintactico.png", width=400, height=250)  # Reducir altura
 
             def generar_arbol(e):
                 codigo = codigo_input_sintactico.value
@@ -334,7 +341,7 @@ def main(page: ft.Page):
             errores_table = ft.ListView(
                 auto_scroll=True,
                 expand=True,
-                height=250  
+                height=200  # Reducir altura
             )
 
             # Definir la función mostrar_errores para la vista sintáctica
@@ -371,6 +378,37 @@ def main(page: ft.Page):
                 errores_table.controls.clear()
                 page.update()
 
+            # Botones de acción - Ahora están en la parte superior
+            botones_accion = ft.Row(
+                [
+                    ft.ElevatedButton(
+                        "Errores",
+                        style=ft.ButtonStyle(
+                            shape=ft.RoundedRectangleBorder(radius=20),
+                            bgcolor={"": "#1DB954"}
+                        ),
+                        on_click=mostrar_errores
+                    ),
+                    ft.ElevatedButton(
+                        "Árbol",
+                        style=ft.ButtonStyle(
+                            shape=ft.RoundedRectangleBorder(radius=20),
+                            bgcolor={"": "#1DB954"}
+                        ),
+                        on_click=generar_arbol
+                    ),
+                    ft.ElevatedButton(
+                        "Limpiar",
+                        style=ft.ButtonStyle(
+                            shape=ft.RoundedRectangleBorder(radius=20),
+                            bgcolor={"": "#FF3B30"}
+                        ),
+                        on_click=lambda e: page.update()  # O implementa una función para limpiar
+                    )
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                spacing=10
+            )
 
             page.views.append(
                 ft.View(
@@ -398,6 +436,10 @@ def main(page: ft.Page):
                                         )
                                     ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                                     codigo_input_sintactico,
+                                    
+                                    # Botones ahora están aquí, antes de las tablas
+                                    botones_accion,
+                                    
                                     # Fila con errores y árbol
                                     ft.Row(
                                         [
@@ -413,52 +455,19 @@ def main(page: ft.Page):
                                         ],
                                         alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                                     ),
-                                    # Nueva fila con botones debajo de la fila de errores y árbol
-                                    ft.Row(
-                                        [
-                                            ft.ElevatedButton(
-                                                "Errores",
-                                                style=ft.ButtonStyle(
-                                                    shape=ft.RoundedRectangleBorder(radius=20),
-                                                    bgcolor={"": "#1DB954"}
-                                                ),
-                                                on_click=mostrar_errores
-                                            ),
-                                            ft.ElevatedButton(
-                                                "Árbol",
-                                                style=ft.ButtonStyle(
-                                                    shape=ft.RoundedRectangleBorder(radius=20),
-                                                    bgcolor={"": "#1DB954"}
-                                                ),
-                                                on_click=generar_arbol
-                                            ),
-                                            ft.ElevatedButton(
-                                                "Limpiar",
-                                                style=ft.ButtonStyle(
-                                                    shape=ft.RoundedRectangleBorder(radius=20),
-                                                    bgcolor={"": "#FF3B30"}
-                                                ),
-                                                on_click=lambda e: page.update()  # O implementa una función para limpiar
-                                            )
-                                        ],
-                                        alignment=ft.MainAxisAlignment.CENTER,
-                                        spacing=10
-                                    )
                                 ],
-                                alignment=ft.MainAxisAlignment.CENTER,
+                                alignment=ft.MainAxisAlignment.START,  # Cambiar a START
                                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                                spacing=20
+                                spacing=15  # Reducir espaciado
                             ),
                             padding=20,
                             border_radius=10,
                             expand=True,
-                            alignment=ft.alignment.center
                         )
-                    ]
+                    ],
+                    scroll=ft.ScrollMode.AUTO  # Habilitar scroll en la vista
                 )
             )
-
-
 
         #vista semantico
         elif page.route == "/semantico":
@@ -482,9 +491,9 @@ def main(page: ft.Page):
                                             text_align=ft.TextAlign.CENTER),
                                     ft.Image(
                                         src="AnalizadorLexico\perro.jpg",
-                                        width=200,  # Ajusta el ancho según sea necesario
-                                        height=200, # Ajusta el alto según sea necesario
-                                        fit=ft.ImageFit.CONTAIN, # Ajusta el fit según sea necesario
+                                        width=200,
+                                        height=200,
+                                        fit=ft.ImageFit.CONTAIN,
                                     ),
                                 ],
                                 alignment=ft.MainAxisAlignment.CENTER,
