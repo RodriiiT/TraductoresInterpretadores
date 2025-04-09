@@ -2,6 +2,7 @@ import flet as ft
 import os
 from analizador_lexico import analizar_lexicamente, obtener_errores
 from analizador_sintactico import generar_arbol_sintactico
+from analizador_semantico import analizar_semanticamente, obtener_tabla_simbolos_texto, obtener_ast_anotado
 
 def main(page: ft.Page):
     page.title = "Fases de un compilador"
@@ -99,7 +100,7 @@ def main(page: ft.Page):
                 )
             )
 
-        # Vista Léxico
+########################## Vista Léxico ####################################################################################################
         if page.route == "/lexico":
             codigo_input = ft.TextField(
                 multiline=True,
@@ -302,7 +303,7 @@ def main(page: ft.Page):
                 )
             )
 
-        # Vista Sintáctico
+########################## Vista Sintáctico####################################################################################################
         elif page.route == "/sintactico":
             # Creamos un input específico para el código en la vista sintáctica
             codigo_input_sintactico = ft.TextField(
@@ -469,8 +470,208 @@ def main(page: ft.Page):
                 )
             )
 
-        #vista semantico
+#########################vista semantico####################################################################################################
         elif page.route == "/semantico":
+            # Creamos un input específico para el código en la vista semántica
+            codigo_input = ft.TextField(
+                multiline=True,
+                min_lines=6,
+                max_lines=6,
+                hint_text="Ingrese el código Java para el análisis semántico...",
+                hint_style=ft.TextStyle(color="#AAAAAA"),
+                border_radius=8,
+                bgcolor="#282828",
+                border_color="transparent",
+                text_size=14,
+                color="#FFFFFF",
+                value="""public class Ejemplo {
+    private int contador;
+    
+    public Ejemplo() {
+        contador = 0;
+    }
+    
+    public void incrementar() {
+        contador += 1;
+    }
+    
+    public int getContador() {
+        return contador;
+    }
+}
+
+public class Principal {
+    public static void main(String[] args) {
+        Ejemplo obj = new Ejemplo();
+        obj.incrementar();
+        int valor = obj.getContador();
+    }
+}"""        
+            )
+            
+            # Tabla de errores semánticos
+            errores_semanticos_table = ft.ListView(
+                auto_scroll=True,
+                expand=True,
+                height=200
+            )
+            
+            # Tabla de símbolos
+            tabla_simbolos_text = ft.TextField(
+                multiline=True,
+                min_lines=10,
+                max_lines=10,
+                read_only=True,
+                bgcolor="#282828",
+                border_color="transparent",
+                border_radius=8,
+                text_size=14,
+                color="#FFFFFF"
+            )
+            
+            # AST anotado
+            ast_anotado_text = ft.TextField(
+                multiline=True,
+                min_lines=10,
+                max_lines=10,
+                read_only=True,
+                bgcolor="#282828",
+                border_color="transparent",
+                border_radius=8,
+                text_size=14,
+                color="#FFFFFF"
+            )
+            
+            # Función para analizar semánticamente
+            def analizar_semantica(e):
+                codigo = codigo_input.value
+                tabla, errores = analizar_semanticamente(codigo)
+                
+                # Mostrar tabla de símbolos
+                tabla_simbolos_text.value = obtener_tabla_simbolos_texto(tabla)
+                
+                # Mostrar AST anotado
+                ast_anotado_text.value = obtener_ast_anotado(tabla)
+                
+                # Mostrar errores
+                errores_semanticos_table.controls.clear()
+                
+                # Encabezado de la tabla de errores
+                errores_semanticos_table.controls.append(
+                    ft.Row([
+                        ft.Text("Línea", weight=ft.FontWeight.BOLD, width=50),
+                        ft.Text("Error", weight=ft.FontWeight.BOLD, width=300)
+                    ])
+                )
+                
+                if errores:
+                    for linea, mensaje in errores:
+                        linea_str = str(linea) if linea != 0 else "Global"
+                        errores_semanticos_table.controls.append(
+                            ft.Row([
+                                ft.Text(linea_str, width=50),
+                                ft.Text(mensaje, width=300)
+                            ])
+                        )
+                else:
+                    errores_semanticos_table.controls.append(
+                        ft.Row([
+                            ft.Text(""),
+                            ft.Text("No se encontraron errores semánticos.", width=300)
+                        ])
+                    )
+                
+                page.update()
+            
+            # Función para mostrar solo errores
+            def mostrar_errores_semanticos(e):
+                codigo = codigo_input.value
+                _, errores = analizar_semanticamente(codigo)
+                
+                errores_semanticos_table.controls.clear()
+                
+                # Encabezado de la tabla de errores
+                errores_semanticos_table.controls.append(
+                    ft.Row([
+                        ft.Text("Línea", weight=ft.FontWeight.BOLD, width=50),
+                        ft.Text("Error", weight=ft.FontWeight.BOLD, width=300)
+                    ])
+                )
+                
+                if errores:
+                    for linea, mensaje in errores:
+                        linea_str = str(linea) if linea != 0 else "Global"
+                        errores_semanticos_table.controls.append(
+                            ft.Row([
+                                ft.Text(linea_str, width=50),
+                                ft.Text(mensaje, width=300)
+                            ])
+                        )
+                else:
+                    errores_semanticos_table.controls.append(
+                        ft.Row([
+                            ft.Text(""),
+                            ft.Text("No se encontraron errores semánticos.", width=300)
+                        ])
+                    )
+                
+                page.update()
+            
+            # Función para mostrar tabla de símbolos
+            def mostrar_tabla_simbolos(e):
+                codigo = codigo_input.value
+                tabla, _ = analizar_semanticamente(codigo)
+                
+                tabla_simbolos_text.value = obtener_tabla_simbolos_texto(tabla)
+                page.update()
+            
+            # Función para limpiar resultados
+            def limpiar_resultados(e):
+                errores_semanticos_table.controls.clear()
+                tabla_simbolos_text.value = ""
+                ast_anotado_text.value = ""
+                page.update()
+                
+            # Botones de acción
+            botones_accion = ft.Row(
+                [
+                    ft.ElevatedButton(
+                        "Analizar",
+                        style=ft.ButtonStyle(
+                            shape=ft.RoundedRectangleBorder(radius=20),
+                            bgcolor={"": "#1DB954"}
+                        ),
+                        on_click=analizar_semantica
+                    ),
+                    ft.ElevatedButton(
+                        "Errores",
+                        style=ft.ButtonStyle(
+                            shape=ft.RoundedRectangleBorder(radius=20),
+                            bgcolor={"": "#1DB954"}
+                        ),
+                        on_click=mostrar_errores_semanticos
+                    ),
+                    ft.ElevatedButton(
+                        "Tabla de Símbolos",
+                        style=ft.ButtonStyle(
+                            shape=ft.RoundedRectangleBorder(radius=20),
+                            bgcolor={"": "#1DB954"}
+                        ),
+                        on_click=mostrar_tabla_simbolos
+                    ),
+                    ft.ElevatedButton(
+                        "Limpiar",
+                        style=ft.ButtonStyle(
+                            shape=ft.RoundedRectangleBorder(radius=20),
+                            bgcolor={"": "#FF3B30"}
+                        ),
+                        on_click=limpiar_resultados
+                    )
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                spacing=10
+            )
+            
             page.views.append(
                 ft.View(
                     "/semantico",
@@ -485,24 +686,33 @@ def main(page: ft.Page):
                         ft.Container(
                             content=ft.Column(
                                 [
-                                    ft.Text("Analizador Semántico - En construcción", 
-                                            size=20, 
-                                            weight=ft.FontWeight.BOLD,
-                                            text_align=ft.TextAlign.CENTER),
-                                    ft.Image(
-                                        src="AnalizadorLexico\perro.jpg",
-                                        width=200,
-                                        height=200,
-                                        fit=ft.ImageFit.CONTAIN,
-                                    ),
+                                    ft.Row([
+                                        ft.Text("Código fuente", size=14, weight=ft.FontWeight.W_500),
+                                        ft.ElevatedButton(
+                                            "Buscar archivo Java",
+                                            icon=ft.icons.UPLOAD_FILE,
+                                            style=ft.ButtonStyle(
+                                                shape=ft.RoundedRectangleBorder(radius=20),
+                                                bgcolor={"": "#1DB954"}
+                                            ),
+                                            on_click=abrir_selector_archivos
+                                        )
+                                    ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                                    codigo_input,
+                                    
+                                    # Botones de acción
+                                    botones_accion
+                                    
+                                    
                                 ],
-                                alignment=ft.MainAxisAlignment.CENTER,
-                                horizontal_alignment=ft.CrossAxisAlignment.CENTER
+                                spacing=15
                             ),
+                            padding=20,
+                            border_radius=10,
                             expand=True,
-                            alignment=ft.alignment.center
                         )
-                    ]
+                    ],
+                    scroll=ft.ScrollMode.AUTO
                 )
             )
 
