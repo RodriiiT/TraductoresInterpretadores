@@ -21,12 +21,12 @@ def main(page: ft.Page):
         min_lines=15,
         max_lines=15,
         hint_text="Introduzca su código Java aquí...",
-        hint_style=ft.TextStyle(color=ft.colors.GREY_400),
+        hint_style=ft.TextStyle(color=ft.Colors.GREY_400),
         border_radius=8,
         bgcolor="#282828",
         border_color="transparent",
         text_size=14,
-        color=ft.colors.WHITE,
+        color=ft.Colors.WHITE,
         value="""public class Prueba {
     public static void main(String[] args) {
         int x = 10;
@@ -77,7 +77,7 @@ def main(page: ft.Page):
                                     ft.Text("Código fuente", size=14, weight=ft.FontWeight.W_500),
                                     ft.ElevatedButton(
                                         "Buscar archivo Java",
-                                        icon=ft.icons.UPLOAD_FILE,
+                                        icon=ft.Icons.UPLOAD_FILE,
                                         style=ft.ButtonStyle(
                                             shape=ft.RoundedRectangleBorder(radius=20),
                                             bgcolor={"": "#1DB954"}
@@ -121,7 +121,7 @@ def main(page: ft.Page):
                                 ft.Text(
                                     "Rodrigo Torres y Jesús Araujo",
                                     size=16,
-                                    color=ft.colors.GREY_400,
+                                    color=ft.Colors.GREY_400,
                                     text_align=ft.TextAlign.CENTER
                                 )
                             ],
@@ -241,7 +241,7 @@ def main(page: ft.Page):
                     "/lexico",
                     [
                         ft.AppBar(
-                            leading=ft.IconButton(ft.icons.ARROW_BACK, on_click=lambda _: page.go("/")),
+                            leading=ft.IconButton(ft.Icons.ARROW_BACK, on_click=lambda _: page.go("/")),
                             title=ft.Text("Analizador Léxico"),
                             center_title=True,
                             bgcolor="#121212",
@@ -368,7 +368,7 @@ def main(page: ft.Page):
                     "/sintactico",
                     [
                         ft.AppBar(
-                            leading=ft.IconButton(ft.icons.ARROW_BACK, on_click=lambda _: page.go("/")),
+                            leading=ft.IconButton(ft.Icons.ARROW_BACK, on_click=lambda _: page.go("/")),
                             title=ft.Text("Analizador Sintáctico"),
                             center_title=True,
                             bgcolor="#121212",
@@ -558,7 +558,7 @@ def main(page: ft.Page):
                     "/semantico",
                     [
                         ft.AppBar(
-                            leading=ft.IconButton(ft.icons.ARROW_BACK, on_click=lambda _: page.go("/")),
+                            leading=ft.IconButton(ft.Icons.ARROW_BACK, on_click=lambda _: page.go("/")),
                             title=ft.Text("Analizador Semántico"),
                             center_title=True,
                             bgcolor="#121212",
