@@ -1,5 +1,7 @@
 import flet as ft
 import os
+import time
+import base64
 from analizador_lexico import analizar_lexicamente, obtener_errores
 from analizador_sintactico import generar_arbol_sintactico
 from analizador_semantico import analizar_semanticamente, obtener_tabla_simbolos_texto, obtener_ast_anotado
@@ -287,7 +289,17 @@ def main(page: ft.Page):
 
         # Vista Sintáctico
         elif page.route == "/sintactico":
-            tree_image = ft.Image(src="arbol_sintactico.png", width=400, height=300)
+            # Contenedor para la imagen del árbol
+            tree_container = ft.Container(
+                content=ft.Text("Haga clic en 'Árbol' para generar el árbol sintáctico", 
+                               text_align=ft.TextAlign.CENTER),
+                width=400,
+                height=300,
+                bgcolor="#282828",
+                border_radius=10,
+                alignment=ft.alignment.center
+            )
+            
             errores_table = ft.ListView(
                 auto_scroll=True,
                 expand=True,
@@ -296,8 +308,70 @@ def main(page: ft.Page):
 
             def generar_arbol(e):
                 codigo = codigo_global.value
-                generar_arbol_sintactico(codigo)
-                tree_image.src = "arbol_sintactico.png"
+                try:
+                    # Generar el árbol sintáctico
+                    generar_arbol_sintactico(codigo)
+                    
+                    # Verificar si el archivo existe
+                    if os.path.exists("arbol_sintactico.png"):
+                        # Leer el archivo de imagen como bytes
+                        with open("arbol_sintactico.png", "rb") as img_file:
+                            img_bytes = img_file.read()
+                        
+                        # Convertir a base64 para mostrar en la interfaz
+                        img_base64 = base64.b64encode(img_bytes).decode('utf-8')
+                        
+                        # Actualizar el contenedor con la imagen
+                        tree_container.content = ft.Image(
+                            src_base64=img_base64,
+                            width=400,
+                            height=300,
+                            fit=ft.ImageFit.CONTAIN
+                        )
+                        
+                        # Mostrar mensaje de éxito
+                        page.snack_bar = ft.SnackBar(
+                            content=ft.Text("Árbol sintáctico generado correctamente"),
+                            bgcolor="#1DB954"
+                        )
+                        page.snack_bar.open = True
+                    else:
+                        # Mostrar mensaje de error si no se encuentra el archivo
+                        tree_container.content = ft.Text(
+                            "Error: No se pudo generar el árbol sintáctico. Archivo no encontrado.",
+                            color=ft.colors.RED_500,
+                            text_align=ft.TextAlign.CENTER
+                        )
+                        
+                        # Mostrar mensaje de error
+                        page.snack_bar = ft.SnackBar(
+                            content=ft.Text("Error: No se pudo generar el árbol sintáctico"),
+                            bgcolor=ft.colors.RED_500
+                        )
+                        page.snack_bar.open = True
+                        
+                        # Imprimir información de depuración
+                        print(f"Ruta actual: {os.getcwd()}")
+                        print(f"¿Existe el archivo?: {os.path.exists('arbol_sintactico.png')}")
+                        
+                except Exception as e:
+                    # Mostrar mensaje de error en caso de excepción
+                    tree_container.content = ft.Text(
+                        f"Error al generar el árbol: {str(e)}",
+                        color=ft.colors.RED_500,
+                        text_align=ft.TextAlign.CENTER
+                    )
+                    
+                    # Mostrar mensaje de error
+                    page.snack_bar = ft.SnackBar(
+                        content=ft.Text(f"Error: {str(e)}"),
+                        bgcolor=ft.colors.RED_500
+                    )
+                    page.snack_bar.open = True
+                    
+                    # Imprimir información de depuración
+                    print(f"Error al generar árbol: {str(e)}")
+                
                 page.update()
 
             def mostrar_errores(e):
@@ -330,6 +404,10 @@ def main(page: ft.Page):
 
             def limpiar_resultados(e):
                 errores_table.controls.clear()
+                tree_container.content = ft.Text(
+                    "Haga clic en 'Árbol' para generar el árbol sintáctico", 
+                    text_align=ft.TextAlign.CENTER
+                )
                 page.update()
 
             botones_accion = ft.Row(
@@ -377,20 +455,31 @@ def main(page: ft.Page):
                             content=ft.Column(
                                 [
                                     botones_accion,
+                                    # Aquí está el cambio principal: poner errores y árbol en la misma fila
                                     ft.Row(
                                         [
+                                            # Columna de errores (lado izquierdo)
                                             ft.Container(
                                                 content=ft.Column([
                                                     ft.Text("Errores", size=14, weight=ft.FontWeight.W_500),
                                                     errores_table
                                                 ]),
-                                                expand=True,
+                                                width=400,
                                                 padding=ft.padding.all(10)
                                             ),
-                                            tree_image
+                                            # Columna del árbol (lado derecho)
+                                            ft.Container(
+                                                content=ft.Column([
+                                                    ft.Text("Árbol Sintáctico", size=14, weight=ft.FontWeight.W_500),
+                                                    tree_container
+                                                ]),
+                                                width=400,
+                                                padding=ft.padding.all(10)
+                                            )
                                         ],
-                                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN
-                                    ),
+                                        alignment=ft.MainAxisAlignment.CENTER,
+                                        spacing=20
+                                    )
                                 ],
                                 alignment=ft.MainAxisAlignment.START,
                                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
