@@ -524,22 +524,22 @@ def main(page: ft.Page):
                         ),
                         on_click=analizar_semantica
                     ),
-                    ft.ElevatedButton(
-                        "Errores",
-                        style=ft.ButtonStyle(
-                            shape=ft.RoundedRectangleBorder(radius=20),
-                            bgcolor={"": "#1DB954"}
-                        ),
-                        on_click=mostrar_errores_semanticos
-                    ),
-                    ft.ElevatedButton(
-                        "Tabla de Símbolos",
-                        style=ft.ButtonStyle(
-                            shape=ft.RoundedRectangleBorder(radius=20),
-                            bgcolor={"": "#1DB954"}
-                        ),
-                        on_click=mostrar_tabla_simbolos
-                    ),
+                    # ft.ElevatedButton(
+                    #     "Errores",
+                    #     style=ft.ButtonStyle(
+                    #         shape=ft.RoundedRectangleBorder(radius=20),
+                    #         bgcolor={"": "#1DB954"}
+                    #     ),
+                    #     on_click=mostrar_errores_semanticos
+                    # ),
+                    # ft.ElevatedButton(
+                    #     "Tabla de Símbolos",
+                    #     style=ft.ButtonStyle(
+                    #         shape=ft.RoundedRectangleBorder(radius=20),
+                    #         bgcolor={"": "#1DB954"}
+                    #     ),
+                    #     on_click=mostrar_tabla_simbolos
+                    # ),
                     ft.ElevatedButton(
                         "Limpiar",
                         style=ft.ButtonStyle(
